@@ -13,8 +13,8 @@ connect(Name, Pid) ->
 new_game(Name, OpponentName) ->
 	global:send(?SERVER, { new_game, Name, OpponentName }).
 
-make_move(Name, OpponentName, Row, Col) ->
-	global:send(?SERVER, { make_move, Name, OpponentName, Row, Col }).
+make_move(Name, OpponentName, Move) ->
+	global:send(?SERVER, { make_move, Name, OpponentName, Move }).
 
 game_loop(Players, Games) ->
 	receive
@@ -42,10 +42,10 @@ game_loop(Players, Games) ->
                     game_loop(Players, Games)
             end;
 
-        { make_move, Name, OpponentName, Row, Col } ->
+        { make_move, Name, OpponentName, Move } ->
 			case dict:find(create_game_key(Name, OpponentName), Games) of
                 { ok, GamePid } ->
-                	tictactoe:make_move(GamePid, Name, Row, Col),
+                	tictactoe:make_move(GamePid, Name, Move),
                 	game_loop(Players, Games);
                 error ->
                 	game_loop(Players, Games)
