@@ -1,12 +1,26 @@
 -module(gameclient).
 -compile(export_all).
 
-test() ->
+t() ->
 	gameserver:start(),
 	Player1 = login("player1"),
 	Player2 = login("player2"),
 	new_game(Player1, "player2"),
-	make_move(Player1, "player2", a1).
+
+	make_move(Player1, "player2", a1),
+	timer:sleep(5),
+	make_move(Player1, "player2", b1),
+	timer:sleep(5),
+	make_move(Player2, "player1", b2),
+	timer:sleep(5),
+	make_move(Player1, "player2", a2),
+	timer:sleep(5),	
+	make_move(Player2, "player1", a2),
+	timer:sleep(5),
+	make_move(Player2, "player1", c3),
+	timer:sleep(5),
+	make_move(Player1, "player2", a3).
+
 
 login(Name) ->
 	Pid = spawn(gameclient, loop, [ Name ]),
@@ -19,9 +33,13 @@ new_game(Pid, OpponentName) ->
 make_move(Pid, OpponentName, Move) ->	
 	Pid ! { make_move, OpponentName, Move }.
 
+send_message(Pid, Message) ->
+	Pid ! { msg, Message}.
+
 loop(Name) ->
 	receive
 		{ msg, Message } ->
+			io:format("~p~n", [Message]),
 			loop(Name);
 		{ new_game, OpponentName} ->
 			gameserver:new_game(Name, OpponentName),

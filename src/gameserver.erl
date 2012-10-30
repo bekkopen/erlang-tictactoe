@@ -17,8 +17,8 @@ make_move(Name, OpponentName, Move) ->
 	global:send(?SERVER, { make_move, Name, OpponentName, Move }).
 
 game_loop(Players, Games) ->
+    process_flag(trap_exit, true),
 	receive
-
 		{ connect, Name, Pid } ->
 			Pid ! { msg, "Welcome to tictactoe server!" },
 			game_loop(dict:store(Name, Pid, Players), Games);
@@ -32,6 +32,7 @@ game_loop(Players, Games) ->
                     		OpponentPid ! { msg, "Ready to rumble against " ++ Name ++ "!" },
                     		GamePid = tictactoe:start({Pid, Name}, {OpponentPid, OpponentName}),
                     		GameKey = create_game_key(Name, OpponentName),
+                            link(GamePid),
                     		game_loop(Players, dict:store(GameKey, GamePid, Games));
                     	error ->
                     		Pid ! { msg, "Did not find opponent " ++ OpponentName ++ "!" },
@@ -50,11 +51,16 @@ game_loop(Players, Games) ->
                 error ->
                 	game_loop(Players, Games)
             end;
-
+        {'EXIT', GamePid, _} ->
+            io:format("Removing game ~p~n", [GamePid]),
+            game_loop(Players, remove_game(GamePid, Games));
 	    Oops ->
  			io:format("I don't get ~p~n", [ Oops ]),
  			game_loop(Players, Games)
  	end.
+
+remove_game(GamePid, Games) ->
+    dict:filter(fun(_, Value) -> Value =/= GamePid end, Games).
 
 create_game_key(PlayerOne, PlayerTwo) ->
 	string:join(lists:sort([PlayerOne, PlayerTwo]), "").
