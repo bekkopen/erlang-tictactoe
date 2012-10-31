@@ -27,8 +27,8 @@ loop(PlayerOne, PlayerTwo, CurrentPlayer, GameState) ->
 						
 					case get_game_result(NewGameState) of
 						tie ->
-							gameclient:send_message(PlayerOnePid, get_tie_message(PlayerTwoName)),
-							gameclient:send_message(PlayerTwoPid, get_tie_message(PlayerOneName));
+							gameclient:game_tie(PlayerOnePid, PlayerTwoName, NewGameState),
+							gameclient:game_tie(PlayerTwoPid, PlayerOneName, NewGameState);
 						x ->
 							gameclient:send_message(PlayerOnePid, get_win_message(PlayerTwoName)),
 							gameclient:send_message(PlayerTwoPid, get_loose_message(PlayerOneName));
@@ -57,9 +57,6 @@ get_win_message(Over) ->
 
 get_loose_message(For) ->
 	"You lost over " ++ For ++ "... :(".
-
-get_tie_message(Opponent) ->
-	"It is a tie between you and " ++ Opponent.
 
 get_game_result(GameState) ->
 	case check_for_winner(GameState) of

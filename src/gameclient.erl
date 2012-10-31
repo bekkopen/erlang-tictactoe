@@ -33,6 +33,9 @@ new_game(Pid, OpponentName) ->
 make_move(Pid, OpponentName, Move) ->	
 	Pid ! { make_move, OpponentName, Move }.
 
+game_tie(Pid, OpponentName, GameState) ->
+	Pid ! { tie, OpponentName, GameState }.
+
 send_message(Pid, Message) ->
 	Pid ! { msg, Message}.
 
@@ -46,5 +49,17 @@ loop(Name) ->
 			loop(Name);
 		{ make_move, OpponentName, Move } ->
 			gameserver:make_move(Name, OpponentName, Move),
-			loop(Name)			
+			loop(Name);
+		{ tie, OpponentName, GameState } ->
+			io:format("~p~n", [get_tie_message(OpponentName)]),
+			loop(Name)		
 	end.
+
+get_win_message(Over) ->
+	"You won over " ++ Over ++ " :)".
+
+get_loose_message(For) ->
+	"You lost over " ++ For ++ "... :(".
+
+get_tie_message(Opponent) ->
+	"It is a tie between you and " ++ Opponent.	
